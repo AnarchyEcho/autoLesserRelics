@@ -1,0 +1,7 @@
+{
+  "namespace": "autoRelics",
+  "setup": "setup.mjs",
+  "load": [
+    "templates/templates.html"
+  ]
+}
