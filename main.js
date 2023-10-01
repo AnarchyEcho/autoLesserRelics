@@ -1,8 +1,8 @@
-export function setup({ onCharacterSelectionLoaded, onCharacterLoaded, onInterfaceReady }) {
-  const items = [];
+export function setup({ onCharacterLoaded, onInterfaceReady }) {
   const bankItems = [];
   const currentEquipSet = game.combat.player.selectedEquipmentSet;
-  let activeAction = null;
+
+  let currItem = {};
 
   // THE BELOW CODE BELONGS TO THE SEMI MOD MAKERS, NOT USING API METHOD TO ENSURE NO DEPS NEEDED.
   // https://gitlab.com/semi5/semi-core-and-utils IS THE SOURCE OF THE CODE.
@@ -34,38 +34,25 @@ export function setup({ onCharacterSelectionLoaded, onCharacterLoaded, onInterfa
   };
   // CODE CREDITING ENDS HERE.
 
-  onCharacterSelectionLoaded(ctx => {
-    console.log('Loaded Auto Relics Char Selection')
-  });
-
   onCharacterLoaded(ctx => {
     if (game.currentGamemode.localID !== 'AncientRelics') return null;
-    if (game.activeAction) { activeAction = game.activeAction }
 
-    const itemParentMap = Object.fromEntries(
-      Object.fromEntries(
-        game.items.equipment.namespaceMaps
-      )["melvorAoD"]
-    );
+    game.bank.searchArray.filter(x => { if (x.name.match(/\w Lesser Relic/)) bankItems.push(x); })
 
-    game.skills.allObjects.forEach(skill => {
-      if (itemParentMap[`${skill.name}_Lesser_Relic`] !== undefined) { items.push(itemParentMap[`${skill.name}_Lesser_Relic`]) }
-    });
-
-    items.forEach(item => {
-      game.bank.searchArray.filter(x => x.name === item.name && bankItems.push(x))
-    })
-
-    console.log(items);
-
+    currItem = bankItems.filter(x => x.name.includes(game.activeAction?.localID) && x)[0]
+    if (game.activeAction?.localID !== 'Combat' && game.activeAction?.localID !== 'Archaeology' && game.activeAction?.localID !== 'Cartography' && currItem) {
+      equipmentEquipSlot(currentEquipSet, 'Consumable', currItem)
+    }
   })
 
   onInterfaceReady(ctx => {
     if (game.currentGamemode.localID !== 'AncientRelics') return null;
-    if (game.activeAction) { activeAction = game.activeAction }
-    console.log(ctx)
 
-    equipmentEquipSlot(currentEquipSet, 'Consumable',)
-
+    setInterval(() => {
+      currItem = bankItems.filter(x => x.name.includes(game.activeAction?.localID) && x)[0]
+      if (game.activeAction?.localID !== 'Combat' && game.activeAction?.localID !== 'Archaeology' && game.activeAction?.localID !== 'Cartography' && currItem && !equipmentSlotHasItem(currentEquipSet, 'Consumable', currItem)) {
+        equipmentEquipSlot(currentEquipSet, 'Consumable', currItem)
+      }
+    }, 3000)
   })
 }
