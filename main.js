@@ -1,7 +1,6 @@
-export function setup({ onCharacterLoaded, onInterfaceReady }) {
-  const bankItems = [];
-  const currentEquipSet = game.combat.player.selectedEquipmentSet;
-
+export function setup({ ctx, onCharacterLoaded, onInterfaceReady }) {
+  let currentEquipSet = game.combat.player.selectedEquipmentSet;
+  let bankItems = [];
   let currItem = {};
 
   // THE BELOW CODE BELONGS TO THE SEMI MOD MAKERS, NOT USING API METHOD TO ENSURE NO DEPS NEEDED.
@@ -49,10 +48,13 @@ export function setup({ onCharacterLoaded, onInterfaceReady }) {
     if (game.currentGamemode.localID !== 'AncientRelics') return null;
 
     setInterval(() => {
+      currentEquipSet = game.combat.player.selectedEquipmentSet;
       currItem = bankItems.filter(x => x.name.includes(game.activeAction?.localID) && x)[0]
       if (game.activeAction?.localID !== 'Combat' && game.activeAction?.localID !== 'Archaeology' && game.activeAction?.localID !== 'Cartography' && currItem && !equipmentSlotHasItem(currentEquipSet, 'Consumable', currItem)) {
         equipmentEquipSlot(currentEquipSet, 'Consumable', currItem)
       }
+      bankItems = [];
+      game.bank.searchArray.filter(x => { if (x.name.match(/\w Lesser Relic/)) bankItems.push(x); });
     }, 3000)
   })
 }
